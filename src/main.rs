@@ -1,23 +1,123 @@
-pub mod raycaster {
-    pub mod view {
-        pub mod image;
-        pub mod render;
-    }
-    pub mod model {
-        pub mod vector;
-    }
-    pub mod controller {
-        pub mod ray;
-        pub mod sphere;
-    }
-}
+// pub mod raycaster {
+//     pub mod view {
+//         pub mod image;
+//         pub mod render;
+//     }
+//     pub mod model {
+//         pub mod vector;
+//     }
+//     pub mod controller {
+//         pub mod ray;
+//         pub mod sphere;
+//     }
+// }
 
-use raycaster::model::vector::Vec3;
-use raycaster::view::image::save_image;
-use raycaster::view::render::render;
+// use raycaster::model::vector::Vec3;
+// use raycaster::view::image::save_image;
+// use raycaster::view::render::render;
+// fn main() {
+//     let width = 800;
+//     let height = 600;
+//     let buffer: Vec<Vec<Vec3>> = render(width, height);
+//     save_image(width, height, buffer);
+// }
+use raylib::prelude::*;
+
+const MAP_WIDTH: usize = 24;
+const MAP_HEIGHT: usize = 24;
+const SCREEN_WIDTH: usize = 640;
+const SCREEN_HEIGHT: usize = 480;
+
+const WORLD_MAP: [[i32; MAP_WIDTH]; MAP_HEIGHT] = [
+    [
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    ],
+    [
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    ],
+    [
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    ],
+    [
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    ],
+    [
+        1, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0, 3, 0, 3, 0, 3, 0, 0, 0, 1,
+    ],
+    [
+        1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    ],
+    [
+        1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 3, 0, 0, 0, 3, 0, 0, 0, 1,
+    ],
+    [
+        1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    ],
+    [
+        1, 0, 0, 0, 0, 0, 2, 2, 0, 2, 2, 0, 0, 0, 0, 3, 0, 3, 0, 3, 0, 0, 0, 1,
+    ],
+    [
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    ],
+    [
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    ],
+    [
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    ],
+    [
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    ],
+    [
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    ],
+    [
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    ],
+    [
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    ],
+    [
+        1, 4, 4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    ],
+    [
+        1, 4, 0, 4, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    ],
+    [
+        1, 4, 0, 0, 0, 0, 5, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    ],
+    [
+        1, 4, 0, 4, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    ],
+    [
+        1, 4, 0, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    ],
+    [
+        1, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    ],
+    [
+        1, 4, 4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    ],
+    [
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    ],
+];
+
+// fn main() {
+//     let mut posX = 22.0;
+//     let mut posY = 12.0;
+//     let mut planeX = 0.0;
+//     let mut planeY = 0.0;
+//     let mut time = 0.0;
+//     let mut oldTime = 0.0;
+// }
 fn main() {
-    let width = 800;
-    let height = 600;
-    let buffer: Vec<Vec<Vec3>> = render(width, height);
-    save_image(width, height, buffer);
+    let (mut rl, thread) = raylib::init().size(640, 480).title("Hello, World").build();
+
+    while !rl.window_should_close() {
+        let mut d = rl.begin_drawing(&thread);
+
+        d.clear_background(Color::WHITE);
+        d.draw_text("Hello, world!", 12, 12, 20, Color::BLACK);
+    }
 }
