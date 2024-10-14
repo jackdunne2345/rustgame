@@ -115,8 +115,8 @@ fn main() {
     let (mut rl, thread) = raylib::init().size(SCREEN_WIDTH, SCREEN_HEIGHT).title("RayCaster").build();
     while !rl.window_should_close() {
                 let mut d = rl.begin_drawing(&thread);
-                for i in 0..SCREEN_WIDTH {
-                    let camera_x: f64 = 2.0 * i as f64 / SCREEN_WIDTH as f64 - 1.0;
+                for x in 0..SCREEN_WIDTH {
+                    let camera_x: f64 = 2.0 * x as f64 / SCREEN_WIDTH as f64 - 1.0;
                     let ray_dir_x:f64=dir_x +plane_x*camera_x;
                     let ray_dir_y:f64=dir_y +plane_y*camera_x;
 
@@ -169,7 +169,24 @@ fn main() {
                     }
                     if side == 0{ perp_wall_dist=side_dist_x -delta_dist_x}
                         else{ perp_wall_dist=side_dist_y-delta_dist_y}
-                 
+                    let line_height: i32=(SCREEN_HEIGHT as f64/perp_wall_dist) as i32;
+                    let mut draw_start=-line_height/2+SCREEN_HEIGHT/2;
+                    if(draw_start <0){draw_start=0}
+                    let mut draw_end=line_height/2+SCREEN_HEIGHT/2;
+                    if(draw_end>=SCREEN_HEIGHT){draw_end=SCREEN_HEIGHT-1}
+                    let mut color_rgb: Color = match WORLD_MAP[map_x as usize][map_y as usize] {
+                        1 => Color::RED,    
+                        2 => Color::GREEN,   
+                        3 => Color::BLUE,   
+                        4 => Color::VIOLET,   
+                        _ => Color::WHITE,   
+                    };
+                    if(side ==1){color_rgb=color_rgb.brightness(0.5)}
+                    //draws the line using raylib
+                    d.draw_line(x, draw_start, x,draw_end, color_rgb);
+                    
+                    
+                    
                     
                 }
                
