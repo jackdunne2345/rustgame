@@ -129,7 +129,7 @@ fn main() {
                         step_y=-1;
                         side_dist_y =(pos_y - map_y as f64)*delta_dist_y;
                     }else{
-                        step_y=-1;
+                        step_y=1;
                         side_dist_y=(map_y as f64+1.0 - pos_y)*delta_dist_y;
                     }
                     //perform DDA
